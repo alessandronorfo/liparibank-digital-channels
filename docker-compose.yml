@@ -1,0 +1,27 @@
+# PostgreSQL locale per lo sviluppo.
+# Le credenziali arrivano dal file .env (vedi .env.example): mai password nel repository.
+name: liparibank
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: liparibank-db
+    restart: unless-stopped
+    ports:
+      # 127.0.0.1 = il DB è raggiungibile solo da questo PC, non da altri sulla rete aziendale
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?imposta POSTGRES_USER nel file .env (vedi .env.example)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?imposta POSTGRES_PASSWORD nel file .env (vedi .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:?imposta POSTGRES_DB nel file .env (vedi .env.example)}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # $$ = variabile letta dentro il container, non da Compose
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

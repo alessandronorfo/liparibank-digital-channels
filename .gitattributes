@@ -1,0 +1,7 @@
+# Fine riga LF per tutti i file di testo, anche su Windows.
+# Coerente con "files.eol": "\n" di VS Code e con Prettier: niente diff "fantasma" su ogni riga.
+* text=auto eol=lf
+
+# Gli script batch di Windows vogliono CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
