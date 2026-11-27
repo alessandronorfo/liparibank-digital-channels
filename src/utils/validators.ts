@@ -1,5 +1,6 @@
 // Utility di validazione base per il dominio bancario italiano.
 // Al Giorno 4, queste saranno sostituite da schema Zod.
+import { CreateTransactionDto } from "../types/transaction.js";
 
 /** Verifica che un IBAN sia italiano e lungo 27 caratteri */
 export function isValidItalianIban(iban: string): boolean {
@@ -16,4 +17,16 @@ export function isValidFiscalCode(cf: string): boolean {
 /** Verifica che un importo sia un numero positivo finito */
 export function isPositiveAmount(amount: number): boolean {
   return typeof amount === "number" && amount > 0 && isFinite(amount);
+}
+
+/**
+ * Verifica una richiesta di bonifico: importo positivo, conto di addebito
+ * diverso da quello di accredito, descrizione non vuota (gli spazi non contano).
+ */
+export function isValidTransaction(tx: CreateTransactionDto): boolean {
+  return (
+    isPositiveAmount(tx.amount) &&
+    tx.fromAccountId !== tx.toAccountId &&
+    tx.description.trim().length > 0
+  );
 }
