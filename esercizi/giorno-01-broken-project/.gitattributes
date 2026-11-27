@@ -1,0 +1,2 @@
+# Fine riga LF per tutti i file di testo, anche su Windows
+* text=auto eol=lf
