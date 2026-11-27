@@ -6,6 +6,11 @@
     "source.organizeImports": "explicit"
   },
   "typescript.preferences.importModuleSpecifier": "relative",
+
+  // L'editor usa il TypeScript del progetto (lo stesso di npm run typecheck), non quello di VS Code
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
   "editor.tabSize": 2,
   "files.eol": "\n",
   "files.insertFinalNewline": true,
