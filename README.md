@@ -63,8 +63,9 @@ La porta è esposta solo su `127.0.0.1`: il database è raggiungibile da questo 
 
 ```text
 src/
-├── types/          # Interfacce, enum, DTO
-├── utils/          # Utility (validatori, formatter)
+├── types/          # Interfacce, enum, DTO (Account, Customer, Transaction)
+├── utils/          # Utility (validatori)
+├── broken/         # Esercizio "Broken Project" del Giorno 1, corretto
 ├── routes/         # Route Express
 ├── controllers/    # Controller
 ├── services/       # Business logic
@@ -72,6 +73,34 @@ src/
 ├── middleware/     # Middleware Express
 └── index.ts        # Entry point
 tests/              # Test
+esercizi/           # Esercizi consegnati come progetti a sé
+```
+
+## Avanzamento del corso
+
+| Giorno | Contenuto                                                                                        | Dove                                                                       |
+| ------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| 0      | Setup: Node.js 22, TypeScript, ESLint, Prettier, PostgreSQL in Docker                            | Tutto il progetto                                                          |
+| 1      | Modello del dominio tipizzato: interfacce, enum e DTO per conti, clienti e bonifici; validatori  | `src/types/`, `src/utils/`, `src/index.ts`                                 |
+| 1      | Broken Project: tre bug corretti e `isValidTransaction`                                          | `src/broken/`, `src/utils/validators.ts`                                   |
+| 1      | Broken Project, versione della consegna (dallo zip del corso, con un commit per ogni correzione) | [`esercizi/giorno-01-broken-project/`](esercizi/giorno-01-broken-project/) |
+
+Per eseguire un file del Giorno 1:
+
+```bash
+npx tsx src/index.ts
+npx tsx src/broken/bug2.ts
+```
+
+## Esercizi
+
+Ogni cartella in `esercizi/` è un progetto indipendente, con il proprio `package.json`: si installa e si esegue dalla sua cartella. I commit originali sono conservati nella cronologia del repository.
+
+```bash
+cd esercizi/giorno-01-broken-project
+npm ci
+npm run typecheck
+npx tsx src/feature.ts
 ```
 
 ## Project Work — Giorno 0
