@@ -50,47 +50,76 @@ La porta è esposta solo su `127.0.0.1`: il database è raggiungibile da questo 
 
 ## Script npm
 
-| Script              | Cosa fa                                                    |
-| ------------------- | ---------------------------------------------------------- |
-| `npm run dev`       | Esegue `src/index.ts` con tsx e lo riavvia a ogni modifica |
-| `npm run build`     | Compila TypeScript in `dist/`                              |
-| `npm start`         | Esegue la versione compilata                               |
-| `npm run typecheck` | Controlla i tipi senza compilare (tsx non lo fa)           |
-| `npm run lint`      | Analisi statica con ESLint                                 |
-| `npm run format`    | Formatta il codice con Prettier                            |
+| Script              | Cosa fa                                                     |
+| ------------------- | ----------------------------------------------------------- |
+| `npm run dev`       | Esegue `src/server.ts` con tsx e lo riavvia a ogni modifica |
+| `npm run build`     | Compila TypeScript in `dist/`                               |
+| `npm start`         | Esegue la versione compilata (`dist/server.js`)             |
+| `npm run typecheck` | Controlla i tipi senza compilare (tsx non lo fa)            |
+| `npm run lint`      | Analisi statica con ESLint                                  |
+| `npm run format`    | Formatta il codice con Prettier                             |
 
 ## Struttura
 
+Un modulo per ogni contesto del dominio (bounded context): tutto ciò che riguarda i conti sta in `modules/account/`.
+
 ```text
 src/
-├── types/          # Interfacce, enum, DTO (Account, Customer, Transaction)
-├── utils/          # Utility (validatori)
-├── broken/         # Esercizio "Broken Project" del Giorno 1, corretto
-├── routes/         # Route Express
-├── controllers/    # Controller
-├── services/       # Business logic
-├── repositories/   # Accesso ai dati
-├── middleware/     # Middleware Express
-└── index.ts        # Entry point
-tests/              # Test
-esercizi/           # Esercizi consegnati come progetti a sé
+├── config/
+│   └── env.ts             # Configurazione centralizzata, validata all'avvio
+├── types/                 # Tipi condivisi (Account, Customer, Transaction, ApiResponse) e declaration merging
+├── modules/
+│   └── account/
+│       ├── account.controller.ts
+│       ├── account.service.ts
+│       ├── account.repository.ts
+│       ├── account.routes.ts
+│       └── account.types.ts
+├── middleware/            # Middleware custom
+├── utils/                 # Helper trasversali (validatori)
+├── app.ts                 # Istanziazione Express
+└── server.ts              # Bootstrap + listen
+tests/                     # Test
+esercizi/                  # Esercizi consegnati come progetti a sé
 ```
+
+I file di `modules/account/` e `app.ts` sono ancora segnaposto: il codice Express arriva dal Giorno 3.
+
+## Configurazione
+
+Tutte le variabili d'ambiente si leggono in un solo punto, `src/config/env.ts`, che le valida all'avvio. Se manca `DATABASE_URL` o un valore non è valido, l'applicazione **non parte** ed elenca tutti i problemi insieme:
+
+```text
+Error: Configurazione non valida:
+  - PORT deve essere un intero tra 1 e 65535 (trovato "99999")
+  - DATABASE_URL deve iniziare con postgresql://
+```
+
+| Variabile      | Obbligatoria | Predefinita             | Note                                          |
+| -------------- | ------------ | ----------------------- | --------------------------------------------- |
+| `DATABASE_URL` | sì           | —                       | `postgresql://…`                              |
+| `PORT`         | no           | `3000`                  | intero tra 1 e 65535                          |
+| `NODE_ENV`     | no           | `development`           | `development`, `test` o `production`          |
+| `CORS_ORIGIN`  | no           | `http://localhost:5173` | URL del frontend autorizzato; `*` è rifiutato |
+
+Il resto del codice usa l'oggetto `env`, tipizzato, `as const` e congelato con `Object.freeze`:
+
+```ts
+import { env } from "./config/env.js";
+env.port; // number
+env.nodeEnv; // "development" | "test" | "production"
+```
+
+`console.log(env)` e `JSON.stringify(env)` mostrano la password del database mascherata (`postgresql://liparibank:****@…`), così non finisce nei log. `env.dbUrl` contiene il valore vero.
 
 ## Avanzamento del corso
 
-| Giorno | Contenuto                                                                                        | Dove                                                                       |
-| ------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| 0      | Setup: Node.js 22, TypeScript, ESLint, Prettier, PostgreSQL in Docker                            | Tutto il progetto                                                          |
-| 1      | Modello del dominio tipizzato: interfacce, enum e DTO per conti, clienti e bonifici; validatori  | `src/types/`, `src/utils/`, `src/index.ts`                                 |
-| 1      | Broken Project: tre bug corretti e `isValidTransaction`                                          | `src/broken/`, `src/utils/validators.ts`                                   |
-| 1      | Broken Project, versione della consegna (dallo zip del corso, con un commit per ogni correzione) | [`esercizi/giorno-01-broken-project/`](esercizi/giorno-01-broken-project/) |
-
-Per eseguire un file del Giorno 1:
-
-```bash
-npx tsx src/index.ts
-npx tsx src/broken/bug2.ts
-```
+| Giorno | Contenuto                                                                                                             | Dove                                                                       |
+| ------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 0      | Setup: Node.js 22, TypeScript, ESLint, Prettier, PostgreSQL in Docker                                                 | Tutto il progetto                                                          |
+| 1      | Modello del dominio tipizzato: interfacce, enum e DTO per conti, clienti e bonifici; validatori, `isValidTransaction` | `src/types/`, `src/utils/`                                                 |
+| 1      | Broken Project (dallo zip del corso, con un commit per ogni correzione)                                               | [`esercizi/giorno-01-broken-project/`](esercizi/giorno-01-broken-project/) |
+| 1      | Project Work: struttura a moduli, TypeScript strict, tooling, configurazione validata                                 | `src/config/env.ts`, `src/modules/`, `tsconfig.json`, `package.json`       |
 
 ## Esercizi
 
@@ -113,3 +142,17 @@ npx tsx src/feature.ts
 | Connessione al DB da client esterno                          | DBeaver o psql su `localhost:5432`, database `liparibank`                                                                         |
 | `.gitignore` che esclude `.env` e `node_modules/`            | `.gitignore` (esclude anche `dist/` e `coverage/`)                                                                                |
 | Primo commit `G0: setup ambiente, Docker Postgres, repo git` | `git log`                                                                                                                         |
+
+## Project Work — Giorno 1
+
+| Requisito                                                                                      | Dove è soddisfatto                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Struttura directory canonica                                                                   | `src/config/`, `src/types/`, `src/modules/account/` (5 file), `src/middleware/`, `src/utils/`, `src/app.ts`, `src/server.ts`; i file senza codice contengono `export {};` |
+| `typescript`, `tsx`, `@types/node`, `eslint@^9`, `@eslint/js`, `typescript-eslint`, `prettier` | `devDependencies` in `package.json`                                                                                                                                       |
+| `tsconfig.json` strict                                                                         | `strict`, `noUncheckedIndexedAccess`, `target: ES2022`, `module: NodeNext`, `outDir: ./dist`, `rootDir: ./src`                                                            |
+| `eslint.config.js` (flat config) e `.prettierrc`                                               | root del progetto                                                                                                                                                         |
+| Script `dev`, `build`, `start`, `typecheck`, `lint`, `format`                                  | `package.json`                                                                                                                                                            |
+| `src/config/env.ts` con fail-fast                                                              | Lancia un'eccezione se manca `DATABASE_URL` o un valore non è valido; esporta `env` tipizzato e `as const` con `port`, `nodeEnv`, `dbUrl`, `corsOrigin`                   |
+| `.env.example` committato, `.env` ignorato                                                     | `.env.example`, `.gitignore`                                                                                                                                              |
+| Verifica                                                                                       | `npm run typecheck` e `npm run lint` senza errori; `npm run dev` avvia `src/server.ts`, che stampa `env`                                                                  |
+| Commit `G1: struttura progetto, TypeScript strict, tooling, env config`                        | `git log`                                                                                                                                                                 |
